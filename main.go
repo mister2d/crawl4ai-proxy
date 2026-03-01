@@ -156,13 +156,19 @@ func CrawlEndpoint(response http.ResponseWriter, request *http.Request) {
 	log.Printf("200 :: %s\n", request.RemoteAddr)
 }
 
+func HealthEndpoint(response http.ResponseWriter, request *http.Request) {
+        response.WriteHeader(200)
+        response.Write([]byte("OK"))
+}
+
 func main() {
-	ReadEnvironment()
+        ReadEnvironment()
 
-	http.HandleFunc("/crawl", CrawlEndpoint)
+        http.HandleFunc("/crawl", CrawlEndpoint)
+        http.HandleFunc("/health", HealthEndpoint)
 
-	listenAddress := fmt.Sprintf("%s:%d", LISTEN_IP, LISTEN_PORT)
-	log.Printf("Listening on %s\n", listenAddress)
+                listenAddress := fmt.Sprintf("%s:%d", LISTEN_IP, LISTEN_PORT)
+                log.Printf("Listening on %s\n", listenAddress)
 
 	err := http.ListenAndServe(listenAddress, nil)
 	if err != nil {
