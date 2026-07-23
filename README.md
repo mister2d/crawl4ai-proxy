@@ -18,6 +18,9 @@ services:
         environment:
             - LISTEN_PORT=8000
             - CRAWL4AI_ENDPOINT=http://crawl4ai:11235/crawl
+            # Required if the crawl4ai backend enforces bearer auth (see below).
+            # Must match the backend's CRAWL4AI_API_TOKEN value.
+            - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN}
         healthcheck:
           test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
           interval: 30s
@@ -43,6 +46,10 @@ services:
     crawl4ai:
         image: unclecode/crawl4ai:0.6.0-r2
         shm_size: 1g
+        environment:
+            # When set, crawl4ai's startup auth guard requires this bearer token
+            # on every request. Give the proxy the same value above.
+            - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN}
         networks:
             - openwebui
 
@@ -50,6 +57,15 @@ networks:
     openwebui:
         driver: bridge
 ```
+
+## Environment Variables
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `LISTEN_PORT` | `8000` | Port the proxy listens on. |
+| `LISTEN_IP` | `` (all interfaces) | Address the proxy binds to. |
+| `CRAWL4AI_ENDPOINT` | `http://crawl4ai:11235/crawl` | URL of the backend crawl4ai `/crawl` endpoint. |
+| `CRAWL4AI_API_TOKEN` | `` (unset) | Optional bearer token. When set, the proxy sends `Authorization: Bearer <token>` on every request to the backend. Required if the crawl4ai server enforces authentication (recent crawl4ai versions refuse to start on a non-loopback bind without a `CRAWL4AI_API_TOKEN`). Leave unset for un-secured backends. |
 
 Run `docker compose up -d`, visit `localhost:8080` in a browser, navigate to `Admin Panel -> Web Search` and under the "Loader" section, set:
 
